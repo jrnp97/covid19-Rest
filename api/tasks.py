@@ -40,7 +40,10 @@ def file_data_importer(self, data_file_id):
     processed = False
     with open(data_file.origin_file.path, 'r') as file_:
         csv_header = file_.readline().replace('\ufeff', '').split(',')
-    field_mapping = csv_header2model_field_mapper(csv_header=csv_header)
+    if not data_file.header:
+        field_mapping = csv_header2model_field_mapper(csv_header=csv_header)
+    else:
+        field_mapping = data_file.header
     process_detail = '[DETAILS]'
     if None in field_mapping.keys():
         process_detail += '\nSome column was not map with field, mapping: {map_}.'.format(map_=field_mapping)
@@ -53,6 +56,10 @@ def file_data_importer(self, data_file_id):
     df.rename(columns=field_mapping, inplace=True)
     date_column_formats = [
         '%m/%d/%y %H:%M',
+        '%Y-%m-%dT%H:%M:%S',
+        '%m/%d/%Y %H:%M',
+        '%m/%d/%Y %H:%M:%S',
+        '%Y-%m-%d %H:%M:%S',
     ]
     for format_ in date_column_formats:
         try:
@@ -70,7 +77,8 @@ def file_data_importer(self, data_file_id):
         data_file.save(update_fields=['processed', 'process_detail'])
         return False
     df.to_csv(data_file.origin_file.path, index=False, sep=';')
-
+    data_file.header = {name: name for name in df.columns}
+    data_file.save(update_fields=['header'])
     report_day_formats = [
         '%m-%d-%Y',
     ]

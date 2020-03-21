@@ -25,6 +25,16 @@ class DataFileAdmin(admin.ModelAdmin):
         'normalized',
     )
 
+    def re_process_file(self, request, queryset):
+        """ Method to sent to retry files """
+        from api.tasks import file_data_importer
+        for data_file in queryset.filter(processed=False):
+            file_data_importer.delay(data_file.id)
+        self.message_user(request, 'File send to process successfully...')
+
+    actions = [
+        're_process_file',
+    ]
 
 @register(GeneralData)
 class GeneralDataAdmin(admin.ModelAdmin):

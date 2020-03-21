@@ -1,5 +1,6 @@
 """ Module to define API DB Models """
 import hashlib
+
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -7,6 +8,8 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from postgres_copy import CopyManager
+
+from django.contrib.postgres.fields import JSONField
 
 from api.exceptions import AlreadyProcessedFile
 
@@ -19,6 +22,7 @@ class DataFile(models.Model):
     process_id = models.CharField(max_length=200, null=True, blank=True)
     processed = models.BooleanField(default=False)
     normalized = models.BooleanField(default=False)
+    header = JSONField(default=dict)
     process_detail = models.TextField(null=True, blank=True)
     update_date = models.DateTimeField(auto_now=True)
 
