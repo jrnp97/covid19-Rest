@@ -11,6 +11,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 
+from covid_19 import celery_app as app
 
 from api.utils import github_api_request
 from api.utils import csv_header2model_field_mapper
@@ -22,16 +23,20 @@ from api.models import GeneralData
 LOGGER = logging.getLogger(__file__)
 
 
-def file_data_importer(data_file_id):
+@app.task(bind=True)
+def file_data_importer(self, data_file_id):
     """
     Tasks to update covid information from file on DataFile instance to GeneralData Model.
     Args:
+        self: A celery.Task object.
         data_file_id: A int describing DataFile instance id.
 
     Returns:
         A bool return if data was imported correct.
     """
     data_file = DataFile.objects.get(id=data_file_id)
+    data_file.process_id = self.request.id
+    data_file.save(update_fields=['process_id'])
     processed = False
     with open(data_file.origin_file.path, 'r') as file_:
         csv_header = file_.readline().replace('\ufeff', '').split(',')
@@ -106,6 +111,7 @@ def file_data_importer(data_file_id):
     return processed
 
 
+@app.task(bind=True)
 def file_data_downloader(file_server_data):
     """
     Task to download covid.csv file from server and upload on database.
@@ -150,10 +156,11 @@ def file_data_downloader(file_server_data):
         signature=file_server_data['sha'],
     )
     data_file.origin_file.save(file_server_data['name'], ContentFile(open(temp_path, 'rb').read()), save=True)
-    file_data_importer(data_file_id=data_file.id)
+    file_data_importer.delay(data_file_id=data_file.id)
     return False
 
 
+@app.task
 def covid_data_getter():
     """
     Tasks to Getting Covid daily information from https://github.com/CSSEGISandData/COVID-19 thanks.
@@ -177,6 +184,6 @@ def covid_data_getter():
     for file_ in files:
         extension = file_['name'].split('.')[-1]
         if extension == 'csv' and file_['type'] == 'file':
-            file_data_downloader(file_server_data=file_)
+            file_data_downloader.delay(file_server_data=file_)
             good_files += 1
     return good_files

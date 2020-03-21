@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
     'api',
+
 ]
 
 MIDDLEWARE = [
@@ -120,5 +122,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA = '/media/'
+
+# CELERY CONFIG
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672/'
 
 from covid_19.settings_local import *

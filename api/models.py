@@ -15,7 +15,7 @@ class DataFile(models.Model):
     origin_file = models.FileField(upload_to='covid_data')
     signature = models.TextField(unique=True)
     create_date = models.DateTimeField(auto_now_add=True)
-    # process_id = models.CharField(max_length=200, null=True, blank=True)
+    process_id = models.CharField(max_length=200, null=True, blank=True)
     processed = models.BooleanField(default=False)
     normalized = models.BooleanField(default=False)
     process_detail = models.TextField(null=True, blank=True)
