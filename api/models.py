@@ -3,7 +3,8 @@ import hashlib
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
-from django.contrib.postgres.fields import JSONField
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from postgres_copy import CopyManager
 
@@ -22,7 +23,16 @@ class DataFile(models.Model):
     update_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.origin_file
+        return self.origin_file.name
+
+    def download_file(self):
+        url = reverse(
+            'api:data_file_download',
+            kwargs={'data_file_id': self.id}
+        )
+        return mark_safe('<a href="{url}" target="_blank">Download</a>'.format(url=url))
+
+    download_file.allow_tags = True
 
     def generate_checksum(self):
         """

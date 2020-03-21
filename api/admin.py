@@ -14,6 +14,7 @@ class DataFileAdmin(admin.ModelAdmin):
         'processed',
         'create_date',
         'update_date',
+        'download_file',
     )
     search_fields = (
         'origin_file',
