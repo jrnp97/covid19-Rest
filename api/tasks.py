@@ -111,7 +111,7 @@ def file_data_importer(self, data_file_id):
     return processed
 
 
-@app.task(bind=True)
+@app.task
 def file_data_downloader(file_server_data):
     """
     Task to download covid.csv file from server and upload on database.
@@ -184,6 +184,10 @@ def covid_data_getter():
     for file_ in files:
         extension = file_['name'].split('.')[-1]
         if extension == 'csv' and file_['type'] == 'file':
-            file_data_downloader.delay(file_server_data=file_)
+            file_data_downloader.apply_async(
+                kwargs={
+                    'file_server_data': file_,
+                }
+            )
             good_files += 1
     return good_files
