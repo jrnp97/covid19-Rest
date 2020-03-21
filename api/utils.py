@@ -4,6 +4,7 @@ import time
 import hashlib
 
 import requests
+from django.utils.text import slugify
 
 
 def generate_md5_checksum(file_path, chunk_size=4096):
@@ -66,4 +67,56 @@ def github_api_request(request_kwargs):
         'timeout': 60,
     })
     return request_with_retry(request_kwargs)
+
+
+def csv_header2model_field_mapper(csv_header):
+    """
+    Util to help to identify csv header to model fields of api.GeneralData.
+    Args:
+        csv_header: A list with str values of column names of csv file.
+
+    Returns:
+        A dict describing GeneralData field = csv header field.
+    """
+    mapping_ = {
+        'province_state': [
+            slugify('Province/State'),
+        ],
+        'country_region': [
+            slugify('Country/Region'),
+        ],
+        'last_update': [
+            slugify('Last Update'),
+        ],
+        'confirmed': [
+            slugify('Confirmed'),
+        ],
+        'deaths': [
+            slugify('Deaths'),
+        ],
+        'recovered': [
+            slugify('Recovered'),
+        ],
+        'suspected': [
+            slugify('Suspected'),
+        ],
+        'latitude': [
+            slugify('Latitude'),
+        ],
+        'longitude': [
+            slugify('Longitude'),
+        ],
+        'confn_susp': [
+            slugify('ConfnSusp'),
+        ]
+    }
+
+    def get_field_name(slug_header):
+        """ Inner function to get field name of slug column name """
+        for field, column_values in mapping_.items():
+            if slug_header in column_values:
+                return field
+    return {
+        column_name.strip(): get_field_name(slug_header=slugify(column_name.strip())) for column_name in csv_header
+    }
 
