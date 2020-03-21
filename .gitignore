@@ -2,4 +2,6 @@
 .idea/
 *.pyc
 covid_19/settings_local.py
+media/
+media
 
