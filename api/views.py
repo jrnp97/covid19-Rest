@@ -6,7 +6,12 @@ from django.http.response import Http404
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 
+from rest_framework.viewsets import ModelViewSet
+
 from api.models import DataFile
+from api.models import GeneralData
+
+from api.serializers import GeneralDataSerializer
 
 
 def download_csv_file(request, data_file_id):
@@ -22,3 +27,10 @@ def download_csv_file(request, data_file_id):
     response.write(open(data_file.origin_file.path, 'rb').read())
     response['Content-Disposition'] = 'attachment; filename={name}'.format(name=data_file.origin_file.name)
     return response
+
+
+class GeneralDataViewSet(ModelViewSet):
+    queryset = GeneralData.objects.order_by('last_update')
+    serializer_class = GeneralDataSerializer
+    allowed_methods = ['GET']
+
