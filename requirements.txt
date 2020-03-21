@@ -7,6 +7,11 @@ cffi==1.14.0
 chardet==3.0.4
 cryptography==2.8
 Django==3.0.3
+django-celery-beat==2.0.0
+django-celery-results==1.2.1
+django-filter==2.2.0
+django-postgres-copy==2.4.2
+django-timezone-field==4.0
 djangorestframework==3.11.0
 idna==2.9
 importlib-metadata==1.5.0
@@ -16,9 +21,11 @@ mkl-random==1.1.0
 mkl-service==2.3.0
 numpy==1.18.1
 pandas==1.0.2
+psycopg2==2.8.4
 pycparser==2.20
 pyOpenSSL==19.1.0
 PySocks==1.7.1
+python-crontab==2.4.0
 python-dateutil==2.8.1
 pytz==2019.3
 requests==2.23.0
