@@ -12,4 +12,4 @@ updating every day.
 
 The main data source is https://github.com/CSSEGISandData/COVID-19 and his daily reports.
 
-**TODO Include service link.**
+service: http://ec2-13-59-39-81.us-east-2.compute.amazonaws.com/
