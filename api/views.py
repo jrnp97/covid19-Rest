@@ -1,12 +1,15 @@
 """ Module to define api no rest views """
 import os
+import datetime
 import mimetypes
 
 from django.http.response import Http404
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
 
 from api.models import DataFile
 from api.models import GeneralData
@@ -29,8 +32,27 @@ def download_csv_file(request, data_file_id):
     return response
 
 
+def download_all_data_on_csv(request):
+    """ View to generate data to csv """
+    GeneralData.objects.to_csv()
+
+
 class GeneralDataViewSet(ModelViewSet):
     queryset = GeneralData.objects.order_by('last_update')
     serializer_class = GeneralDataSerializer
     allowed_methods = ['GET']
+
+    @action(detail=False, methods=['GET'])
+    def today(self, request):
+        """ Action uri to return actual covid information """
+        today = datetime.date.today()
+        queryset = GeneralData.objects.filter(
+            last_update__year=today.year,
+            last_update__month=today.month,
+            last_update__day=today.day,
+        )
+        serializer_class = self.get_serializer_class()
+        serialzer = serializer_class(queryset, many=True)
+        return Response(serialzer.data, status=200)
+
 
