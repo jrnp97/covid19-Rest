@@ -11,10 +11,12 @@ from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 
+from api.exceptions import HeaderNotIdentifier
+from api.exceptions import DateFormatNotIdentifier
 from covid_19 import celery_app as app
 
+from api.utils import clean_jh_csv_file
 from api.utils import github_api_request
-from api.utils import csv_header2model_field_mapper
 
 from api.models import DataFile
 from api.models import GeneralData
@@ -38,52 +40,23 @@ def file_data_importer(self, data_file_id):
     data_file.process_id = self.request.id
     data_file.save(update_fields=['process_id'])
     processed = False
-    with open(data_file.origin_file.path, 'r') as file_:
-        csv_header = file_.readline().replace('\ufeff', '').split(',')
-    delimiter = ','
-    if not data_file.header:
-        field_mapping = csv_header2model_field_mapper(csv_header=csv_header)
-    else:
-        delimiter = ';'
-        field_mapping = data_file.header
-    process_detail = '[DETAILS]'
-    if None in field_mapping.keys():
-        process_detail += '\nSome column was not map with field, mapping: {map_}.'.format(map_=field_mapping)
+    try:
+        df = clean_jh_csv_file(data_file_id=data_file_id)
+    except HeaderNotIdentifier as err:
         data_file.processed = processed
-        data_file.process_detail = process_detail
+        data_file.process_detail = 'Some column was not map with field, details: {error}.'.format(error=err)
         data_file.save(update_fields=['processed', 'process_detail'])
         return False
-    field_mapping.pop('null', '')
-    field_mapping.pop(None, '')
-    df = pd.read_csv(data_file.origin_file.path, delimiter=delimiter)
-    df.rename(columns=field_mapping, inplace=True)
-    date_column_formats = [
-        '%m/%d/%y %H:%M',
-        '%Y-%m-%dT%H:%M:%S',
-        '%m/%d/%Y %H:%M',
-        '%m/%d/%Y %H:%M:%S',
-        '%Y-%m-%d %H:%M:%S',
-        '%m/%d/%Y %I%p',
-    ]
-    for format_ in date_column_formats:
-        try:
-            df.last_update = pd.to_datetime(df.last_update, format=format_)
-            break
-        except ValueError:
-            logging.info(msg='Last Update column no support: {form} format.'.format(form=format_))
-    else:
-        process_detail = 'Last update: {value} not support registre formats: {registred}'.format(
-            value=df.last_update[0],
-            registred=','.join(date_column_formats)
-        )
+    except DateFormatNotIdentifier as err:
         data_file.processed = processed
-        data_file.process_detail = process_detail
+        data_file.process_detail = 'Some Date column format was not identify, details: {error}.'.format(error=err)
         data_file.save(update_fields=['processed', 'process_detail'])
         return False
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    df.to_csv(data_file.origin_file.path, index=False, sep=';')
+
     data_file.header = {name: name for name in df.columns}
     data_file.save(update_fields=['header'])
+    process_detail = '[DETAILS]'
+
     report_day_formats = [
         '%m-%d-%Y',
     ]
@@ -98,6 +71,7 @@ def file_data_importer(self, data_file_id):
                 name=filename,
                 ft=date_format,
             ))
+
     if not report_day:
         process_detail += '\nFilename date was not parsed.'
     try:
@@ -152,12 +126,16 @@ def file_data_downloader(file_server_data):
     """
     temp_path = os.path.join(tempfile.gettempdir(), file_server_data['name'])
     try:
-        DataFile.objects.get(signature=file_server_data['sha'])
+        data_file = DataFile.objects.get(signature=file_server_data['sha'])
     except ObjectDoesNotExist:
         LOGGER.info(msg='Go to save file => {github_path}'.format(github_path=file_server_data['path']))
     else:
-        LOGGER.info(msg='Already file found not processed')
-        return False
+        if data_file.processed:
+            LOGGER.info(msg='Already file found not processed')
+            return False
+        else:
+            file_data_importer.delay(data_file_id=data_file.id)
+            return True
 
     api_response = github_api_request(request_kwargs={
         'method': 'GET',
@@ -170,7 +148,7 @@ def file_data_downloader(file_server_data):
     )
     data_file.origin_file.save(file_server_data['name'], ContentFile(open(temp_path, 'rb').read()), save=True)
     file_data_importer.delay(data_file_id=data_file.id)
-    return False
+    return True
 
 
 @app.task
