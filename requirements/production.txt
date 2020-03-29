@@ -1,2 +1,4 @@
 -r base.txt
 uWSGI==2.0.18
+boto3==1.12.31
+django-storages==1.9.1
