@@ -1,4 +1,4 @@
-Django==3.0.7
+Django==3.1.6
 celery==4.4.0
 django-celery-results==1.2.1
 djangorestframework==3.11.0
