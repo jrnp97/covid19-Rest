@@ -8,5 +8,5 @@ psycopg2-binary==2.8.4
 django-postgres-copy==2.4.2
 pandas==1.0.3
 requests==2.23.0
-PyYAML==5.3.1
+PyYAML==5.4
 uritemplate==3.0.1
