@@ -6,4 +6,7 @@ media/
 media
 static/
 static
-
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/.terraform/

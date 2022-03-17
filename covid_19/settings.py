@@ -80,8 +80,13 @@ WSGI_APPLICATION = 'covid_19.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # We are using postgres for this project, install psycopg2
+        'NAME': os.environ['DB_DATABASE'],  # Database name
+        'USER': os.environ['DB_USERNAME'],  # Database username
+        'PASSWORD': os.environ['DB_PASSWORD'],  # Database passwod
+        'HOST': os.environ['DB_HOST'],  # Database host
+        'PORT': '',  # Set to empty string for default.
+
     }
 }
 
@@ -128,7 +133,9 @@ MEDIA_URL = '/media/'
 
 # CELERY CONFIG
 CELERY_RESULT_BACKEND = 'django-db'
-CELERY_BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672/'
+
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_BROKER_URL = os.environ['BROKER_URL']
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
