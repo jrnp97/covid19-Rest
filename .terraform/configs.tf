@@ -1,6 +1,6 @@
 # Module to define heroku apps/addons configuration
 locals {
-  database = regex("postgres://(?P<user>.+):(?P<pwd>.+)@(?P<host>.+)/(?P<db>\\w+)", heroku_addon.api_database.config_var_values.DATABASE_URL)
+  database = regex("postgres://(?P<user>.+):(?P<pwd>.+)@(?P<host>.+):(?P<port>\\d+)/(?P<db>\\w+)", heroku_addon.api_database.config_var_values.DATABASE_URL)
 }
 
 resource "heroku_app_config_association" "api_config" {
@@ -10,6 +10,7 @@ resource "heroku_app_config_association" "api_config" {
     DB_HOST = local.database.host
     DB_DATABASE = local.database.db
     DB_USERNAME = local.database.user
+    DB_PORT = local.database.port
     DISABLE_COLLECTSTATIC = 1
   }
 

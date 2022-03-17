@@ -85,7 +85,7 @@ DATABASES = {
         'USER': os.environ['DB_USERNAME'],  # Database username
         'PASSWORD': os.environ['DB_PASSWORD'],  # Database passwod
         'HOST': os.environ['DB_HOST'],  # Database host
-        'PORT': '',  # Set to empty string for default.
+        'PORT': os.environ.get('DB_PORT', ''),  # Set to empty string for default.
 
     }
 }

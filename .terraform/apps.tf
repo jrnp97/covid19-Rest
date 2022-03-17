@@ -5,7 +5,6 @@ resource "heroku_app" "api_app" {
 
   buildpacks = [
     "https://github.com/heroku/heroku-buildpack-python.git"
-    #"https://github.com/django/django.git"
   ]
 
   region = "us"
