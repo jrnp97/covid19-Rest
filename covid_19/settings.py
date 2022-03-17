@@ -149,4 +149,4 @@ REST_FRAMEWORK = {
     ],
 }
 
-from covid_19.settings_local import *
+#from covid_19.settings_local import *
