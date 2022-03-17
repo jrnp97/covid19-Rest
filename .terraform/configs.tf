@@ -7,10 +7,10 @@ resource "heroku_app_config_association" "api_config" {
   app_id = heroku_app.api_app.id
   vars = {
     APP_URL = heroku_app.api_app.web_url
-    APP_DEBUG = false
     DB_HOST = local.database.host
     DB_DATABASE = local.database.db
     DB_USERNAME = local.database.user
+    DISABLE_COLLECTSTATIC = 1
   }
 
   sensitive_vars = {
