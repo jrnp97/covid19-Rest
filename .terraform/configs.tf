@@ -11,7 +11,7 @@ resource "heroku_app_config_association" "api_config" {
     DB_DATABASE = local.database.db
     DB_USERNAME = local.database.user
     DB_PORT = local.database.port
-    DISABLE_COLLECTSTATIC = 1
+    #DISABLE_COLLECTSTATIC = 1
   }
 
   sensitive_vars = {
