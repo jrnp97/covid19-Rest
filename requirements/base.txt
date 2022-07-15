@@ -1,6 +1,6 @@
 Django==3.1.12
 celery==4.4.0
-django-celery-results==1.2.1
+django-celery-results==2.4.0
 djangorestframework==3.11.2
 django-filter==2.4.0
 django-celery-beat==2.0.0
